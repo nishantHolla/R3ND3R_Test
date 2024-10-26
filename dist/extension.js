@@ -94,11 +94,33 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.startServer = void 0;
 const vscode = __importStar(__webpack_require__(1));
 const child_process = __importStar(__webpack_require__(3));
+<<<<<<< HEAD
 const startServer = () => {
+=======
+const os = __importStar(__webpack_require__(5));
+function detectNpmPath() {
+    return new Promise((resolve, reject) => {
+        const command = os.platform() === "win32" ? "where" : "which";
+        child_process.exec(`${command} npm`, (error, stdout) => {
+            if (error) {
+                vscode.window.showErrorMessage("Unable to find npm. Please ensure it is installed.");
+                reject(new Error("npm not found in PATH"));
+            }
+            else {
+                const npmPath = stdout.trim().split("\n")[0]; // Use the first path found
+                resolve(npmPath);
+            }
+        });
+    });
+}
+const startServer = async () => {
+>>>>>>> a831e7014f50b48a463e54965f866d9dedc68ca3
     if (!vscode.workspace.workspaceFolders) {
+        vscode.window.showErrorMessage("No workspace folder open.");
         return;
     }
     const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+<<<<<<< HEAD
     const panel = vscode.window.createWebviewPanel("vitePreview", "Vite Project Preview", vscode.ViewColumn.Beside, { enableScripts: true });
     console.log("ok");
     const viteProcess = child_process.spawn("/opt/homebrew/bin/npm", ["run", "dev"], {
@@ -112,16 +134,54 @@ const startServer = () => {
     });
     panel.webview.html = `<h1>Hello</h1>`;
     // panel.onDidDispose(() => viteProcess.kill(), null);
+=======
+    try {
+        const npmPath = await detectNpmPath();
+        console.log(`Using npm from: ${npmPath}`);
+        const panel = vscode.window.createWebviewPanel("vitePreview", "Vite Project Preview", vscode.ViewColumn.Beside, { enableScripts: true });
+        const viteProcess = child_process.spawn(npmPath, ["run", "dev"], {
+            cwd: rootFolder,
+            shell: os.platform() !== "win32",
+            env: process.env,
+        });
+        viteProcess.on("error", (err) => {
+            if (err instanceof Error) {
+                vscode.window.showErrorMessage(`Failed to start Vite process: ${err.message}`);
+                console.error("Failed to start Vite process:", err);
+            }
+            else {
+                console.error("An unknown error occurred:", err);
+            }
+        });
+        viteProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            const match = output.match(/localhost:\d+/);
+            if (match) {
+                const viteUrl = `http://${match[0]}`;
+                panel.webview.html = getWebviewContent(viteUrl);
+            }
+        });
+        panel.onDidDispose(() => viteProcess.kill(), null); // Kill the process on panel dispose
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error(`Error: ${error.message}`);
+        }
+        else {
+            console.error("An unknown error occurred:", error);
+        }
+    }
+>>>>>>> a831e7014f50b48a463e54965f866d9dedc68ca3
 };
 exports.startServer = startServer;
 function getWebviewContent(viteUrl) {
     return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <body style="margin:0; padding:0; overflow:hidden;">
-            <h1>hello</h1>
-        </body>
-        </html>`;
+    <!DOCTYPE html>
+    <html lang="en">
+    <body style="margin:0; padding:0; overflow:hidden;">
+      <iframe src="${viteUrl}" frameborder="0" style="width:100%; height:100vh;"></iframe>
+    </body>
+    </html>`;
 }
 
 
@@ -195,6 +255,12 @@ const checkIfReactFile = (content, filename) => {
 };
 exports.checkIfReactFile = checkIfReactFile;
 
+
+/***/ }),
+/* 5 */
+/***/ ((module) => {
+
+module.exports = require("os");
 
 /***/ })
 /******/ 	]);

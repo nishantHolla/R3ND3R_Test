@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import * as child_process from "child_process";
 import * as os from "os";
 
-// Helper function to detect the npm path across platforms
 function detectNpmPath(): Promise<string> {
   return new Promise((resolve, reject) => {
     const command = os.platform() === "win32" ? "where" : "which";
@@ -42,8 +41,8 @@ const startServer = async () => {
 
     const viteProcess = child_process.spawn(npmPath, ["run", "dev"], {
       cwd: rootFolder,
-      shell: os.platform() !== "win32", // Use shell for Unix systems
-      env: process.env, // Pass the environment variables
+      shell: os.platform() !== "win32",
+      env: process.env,
     });
 
     viteProcess.on("error", (err: unknown) => {
@@ -58,10 +57,15 @@ const startServer = async () => {
     });
 
     viteProcess.stdout.on("data", (data) => {
-      console.log(data.toString());
+      const output = data.toString();
+      const match = output.match(/localhost:\d+/);
+
+      if (match) {
+        const viteUrl = `http://${match[0]}`;
+        panel.webview.html = getWebviewContent(viteUrl);
+      }
     });
 
-    panel.webview.html = getWebviewContent();
     panel.onDidDispose(() => viteProcess.kill(), null); // Kill the process on panel dispose
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -72,65 +76,14 @@ const startServer = async () => {
   }
 };
 
-function getWebviewContent(): string {
+function getWebviewContent(viteUrl: string): string {
   return `
     <!DOCTYPE html>
     <html lang="en">
     <body style="margin:0; padding:0; overflow:hidden;">
-      <h1>Vite Project Preview</h1>
+      <iframe src="${viteUrl}" frameborder="0" style="width:100%; height:100vh;"></iframe>
     </body>
     </html>`;
 }
 
 export { startServer };
-
-/*
-import * as vscode from "vscode";
-import * as child_process from "child_process";
-
-const startServer = () => {
-  if (!vscode.workspace.workspaceFolders) {
-    return;
-  }
-
-  const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
-  const panel = vscode.window.createWebviewPanel(
-    "vitePreview",
-    "Vite Project Preview",
-    vscode.ViewColumn.Beside,
-    { enableScripts: true }
-  );
-
-  console.log("ok");
-  const viteProcess = child_process.spawn(
-    "/opt/homebrew/bin/npm",
-    ["run", "dev"],
-    {
-      cwd: rootFolder,
-    }
-  );
-
-  viteProcess.on("error", (err) => {
-    console.error("Failed to start Vite process:", err);
-  });
-
-  viteProcess.stdout.on("data", (data) => {
-    console.log(data.toString());
-  });
-
-  panel.webview.html = `<h1>Hello</h1>`;
-  // panel.onDidDispose(() => viteProcess.kill(), null);
-};
-
-function getWebviewContent(viteUrl: string): string {
-  return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <body style="margin:0; padding:0; overflow:hidden;">
-            <h1>hello</h1>
-        </body>
-        </html>`;
-}
-
-export { startServer };
-*/
