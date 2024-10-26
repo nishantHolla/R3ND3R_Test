@@ -9,6 +9,8 @@ import {
   getComponents,
 } from "./parser";
 import fs from "fs";
+import postcss from "postcss";
+import safeParser from "postcss-safe-parser";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "r3nd3r" is now active!');
@@ -32,16 +34,39 @@ export function activate(context: vscode.ExtensionContext) {
         "/r3nd3rExtension/src"
       );
 
-      // Parse the text to check for valid JSX/TSX
-      try {
-        babelParser.parse(text, {
-          sourceType: "module",
-          plugins: ["jsx", "typescript"], // Include plugins for JSX and TSX
-        });
-        console.log("Valid JSX/TSX syntax.");
-        fs.writeFileSync(documentPath, text, "utf-8");
-      } catch (error: any) {
-        console.log("Invalid JSX/TSX syntax:", error.message);
+      if (isCSSDocument(activeEditor.document)) {
+        try {
+          // Parse the CSS using PostCSS's safe parser
+          postcss()
+            .process(text, { parser: safeParser })
+            .then((result) => {
+              console.log("Valid CSS syntax.");
+              fs.writeFileSync(documentPath, text, "utf-8");
+              // Further processing can be done here if needed
+            })
+            .catch((error) => {
+              console.log("Invalid CSS syntax:", error.message);
+            });
+        } catch (error: any) {
+          console.log("Error parsing CSS:", error.message);
+        }
+      }
+
+      if (
+        isJSXDocument(activeEditor.document) ||
+        isTSXDocument(activeEditor.document)
+      ) {
+        // Parse the text to check for valid JSX/TSX
+        try {
+          babelParser.parse(text, {
+            sourceType: "module",
+            plugins: ["jsx", "typescript"], // Include plugins for JSX and TSX
+          });
+          console.log("Valid JSX/TSX syntax.");
+          fs.writeFileSync(documentPath, text, "utf-8");
+        } catch (error: any) {
+          console.log("Invalid JSX/TSX syntax:", error.message);
+        }
       }
     }
   });
@@ -90,6 +115,27 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(helloWOrldDisposable);
+}
+
+function isCSSDocument(document: vscode.TextDocument): boolean {
+  // Optionally check if the file extension is .css
+  return document.languageId === "css" || document.fileName.endsWith(".css");
+}
+
+function isJSXDocument(document: vscode.TextDocument): boolean {
+  // Checks if the language is JavaScript React (JSX) or if the filename ends with .jsx
+  return (
+    document.languageId === "javascriptreact" ||
+    document.fileName.endsWith(".jsx")
+  );
+}
+
+function isTSXDocument(document: vscode.TextDocument): boolean {
+  // Checks if the language is TypeScript React (TSX) or if the filename ends with .tsx
+  return (
+    document.languageId === "typescriptreact" ||
+    document.fileName.endsWith(".tsx")
+  );
 }
 
 // This method is called when your extension is deactivated
