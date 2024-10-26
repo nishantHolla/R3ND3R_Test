@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import { parse } from "@babel/parser";
+import traverse from "@babel/traverse";
 
 const getCurrentFileContent = () => {
   const editor = vscode.window.activeTextEditor;
@@ -44,4 +46,45 @@ const checkIfReactFile = (content: string, filename: string) => {
   );
 };
 
-export { getCurrentFileContent, getCurrentFileName, checkIfReactFile };
+const getComponents = (code: string) => {
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["typescript", "jsx"], // Enable TypeScript and JSX support
+  });
+
+  const components: string[] = [];
+
+  traverse(ast, {
+    FunctionDeclaration(path: any) {
+      const { id } = path.node;
+      if (id && path.node.body.body.length > 0) {
+        components.push(id.name);
+      }
+    },
+    ArrowFunctionExpression(path: any) {
+      const { id } = path.parentPath.node;
+      if (id && path.node.body.type === "JSXElement") {
+        components.push(id.name);
+      }
+    },
+    VariableDeclaration(path: any) {
+      path.node.declarations.forEach((declaration: any) => {
+        if (
+          declaration.init &&
+          declaration.init.type === "ArrowFunctionExpression"
+        ) {
+          components.push(declaration.id.name);
+        }
+      });
+    },
+  });
+
+  return components;
+};
+
+export {
+  getCurrentFileContent,
+  getCurrentFileName,
+  checkIfReactFile,
+  getComponents,
+};
