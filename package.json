@@ -16,6 +16,10 @@
       {
         "command": "r3nd3r.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "r3nd3r.render",
+        "title": "Render current react component"
       }
     ]
   },
