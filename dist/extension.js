@@ -268,7 +268,7 @@ function setup(rootFolder, componentName, componentPath) {
     const newIndexHTMLPath = path.join(extensionFolderPath, "index.html");
     fs.copyFileSync(indexFilePath, newIndexHTMLPath);
     const mainTsxPath = path.join(rootFolder, "r3nd3rExtension", "src", "main.tsx");
-    insertImportIfMissing(mainTsxPath, `import ${componentName} from "${componentPath}"`);
+    insertImportIfMissing(mainTsxPath, `import ${componentName} from "${componentPath}"`, componentName);
     replaceAppComponent(mainTsxPath, componentName);
 }
 /**
@@ -343,9 +343,8 @@ function createViteConfig(folderPath) {
  * @param filePath - The path to the main.tsx file.
  * @param importLine - The import line to add, e.g., `import { MyComponent } from "./MyComponent"`.
  */
-function insertImportIfMissing(filePath, importLine) {
+function insertImportIfMissing(filePath, importLine, componentName) {
     try {
-        const componentName = extractComponentName(importLine);
         // Read the content of the file
         const content = fs.readFileSync(filePath, "utf8");
         // Parse the file content into an AST

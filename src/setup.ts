@@ -52,7 +52,8 @@ function setup(
 
   insertImportIfMissing(
     mainTsxPath,
-    `import ${componentName} from "${componentPath}"`
+    `import ${componentName} from "${componentPath}"`,
+    componentName
   );
 
   replaceAppComponent(mainTsxPath, componentName);
@@ -139,10 +140,12 @@ function createViteConfig(folderPath: string) {
  * @param filePath - The path to the main.tsx file.
  * @param importLine - The import line to add, e.g., `import { MyComponent } from "./MyComponent"`.
  */
-function insertImportIfMissing(filePath: string, importLine: string): void {
+function insertImportIfMissing(
+  filePath: string,
+  importLine: string,
+  componentName: string
+): void {
   try {
-    const componentName = extractComponentName(importLine);
-
     // Read the content of the file
     const content = fs.readFileSync(filePath, "utf8");
 
