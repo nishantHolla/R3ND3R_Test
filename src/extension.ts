@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as babelParser from "@babel/parser";
 import { startServer } from "./server";
 import { setup } from "./setup";
 import {
@@ -7,6 +8,7 @@ import {
   checkIfReactFile,
   getComponents,
 } from "./parser";
+import fs from "fs";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "r3nd3r" is now active!');
@@ -18,6 +20,31 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage("Hello World from R3ND3R!");
     }
   );
+
+  vscode.workspace.onDidChangeTextDocument((event) => {
+    const activeEditor = vscode.window.activeTextEditor;
+
+    // Check if the document that changed is the active one
+    if (activeEditor && event.document === activeEditor.document) {
+      const text = activeEditor.document.getText();
+      const documentPath = activeEditor.document.uri.fsPath.replace(
+        "/src",
+        "/r3nd3rExtension/src"
+      );
+
+      // Parse the text to check for valid JSX/TSX
+      try {
+        babelParser.parse(text, {
+          sourceType: "module",
+          plugins: ["jsx", "typescript"], // Include plugins for JSX and TSX
+        });
+        console.log("Valid JSX/TSX syntax.");
+        fs.writeFileSync(documentPath, text, "utf-8");
+      } catch (error: any) {
+        console.log("Invalid JSX/TSX syntax:", error.message);
+      }
+    }
+  });
 
   const renderDisposable = vscode.commands.registerCommand(
     "r3nd3r.render",
