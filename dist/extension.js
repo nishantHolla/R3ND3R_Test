@@ -108,12 +108,19 @@ function activate(context) {
             return;
         }
         const components = (0, parser_1.getComponents)(content);
-        const currentComponet = components[0];
+        const word = getWordUnderCursor();
+        const currentComponet = components.includes(word || "")
+            ? word
+            : components[0];
+        if (!components || !currentComponet) {
+            vscode.window.showErrorMessage("Could not find a react component");
+            return;
+        }
         const r3nd3rComponentFilePath = currentFilePath.replace("/src", "/r3nd3rExtension/src");
-        console.log(components);
+        console.log("Word under cursor: ", getWordUnderCursor());
         vscode.window.showInformationMessage(`${currentComponet} ${currentFilePath}`);
-        (0, setup_1.setup)(rootFolder, currentComponet, r3nd3rComponentFilePath);
-        (0, server_1.startServer)(rootFolder);
+        (0, setup_1.setup)(rootFolder, currentComponet, r3nd3rComponentFilePath, content);
+        (0, server_1.startServer)(rootFolder, currentComponet);
         vscode.window.showInformationMessage("Rendering current component!");
     });
     context.subscriptions.push(helloWOrldDisposable);
@@ -132,6 +139,21 @@ function isTSXDocument(document) {
     return (document.languageId === "typescriptreact" ||
         document.fileName.endsWith(".tsx"));
 }
+const getWordUnderCursor = () => {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+        return null;
+    }
+    const cursorPosition = activeEditor.selection.active; // Get cursor position
+    const wordRange = activeEditor.document.getWordRangeAtPosition(cursorPosition); // Get word range
+    if (wordRange) {
+        const word = activeEditor.document.getText(wordRange); // Extract the word
+        return word;
+    }
+    else {
+        return null;
+    }
+};
 // This method is called when your extension is deactivated
 function deactivate() { }
 
@@ -192,7 +214,7 @@ function detectNpxPath() {
         });
     });
 }
-const startServer = async (rootFolder) => {
+const startServer = async (rootFolder, componentName) => {
     if (!vscode.workspace.workspaceFolders) {
         vscode.window.showErrorMessage("No workspace folder open.");
         return;
@@ -200,7 +222,7 @@ const startServer = async (rootFolder) => {
     try {
         const npxPath = await detectNpxPath();
         console.log(`Using npx from: ${npxPath}`);
-        const panel = vscode.window.createWebviewPanel("vitePreview", "Vite Project Preview", vscode.ViewColumn.Beside, { enableScripts: true });
+        const panel = vscode.window.createWebviewPanel("vitePreview", `Preview ${componentName}`, vscode.ViewColumn.Beside, { enableScripts: true });
         const viteProcess = child_process.spawn(npxPath, ["vite", "--config", "r3nd3rExtension/vite.config.js"], {
             cwd: rootFolder,
             shell: os.platform() !== "win32",
@@ -303,7 +325,7 @@ const t = __importStar(__webpack_require__(28));
 /**
  * Clears the folder if it exists, otherwise creates a new folder.
  */
-function setup(rootFolder, componentName, componentPath) {
+function setup(rootFolder, componentName, componentPath, content) {
     const extensionFolderPath = path.join(rootFolder, "r3nd3rExtension");
     const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
     const publicFolderPath = path.join(rootFolder, "public"); // Original public folder path
@@ -330,7 +352,11 @@ function setup(rootFolder, componentName, componentPath) {
     const newIndexHTMLPath = path.join(extensionFolderPath, "index.html");
     fs.copyFileSync(indexFilePath, newIndexHTMLPath);
     const mainTsxPath = path.join(rootFolder, "r3nd3rExtension", "src", "main.tsx");
-    insertImportIfMissing(mainTsxPath, `import ${componentName} from "${componentPath}"`, componentName);
+    let importStatement = `import {${componentName}} from "${componentPath}"`;
+    if (content.includes("export default")) {
+        importStatement = `import ${componentName} from "${componentPath}"`;
+    }
+    insertImportIfMissing(mainTsxPath, importStatement, componentName);
     replaceAppComponent(mainTsxPath, componentName);
 }
 /**

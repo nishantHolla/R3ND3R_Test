@@ -98,18 +98,28 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       const components = getComponents(content);
-      const currentComponet = components[0];
+      const word = getWordUnderCursor();
+
+      const currentComponet = components.includes(word || "")
+        ? word
+        : components[0];
+
+      if (!components || !currentComponet) {
+        vscode.window.showErrorMessage("Could not find a react component");
+        return;
+      }
+
       const r3nd3rComponentFilePath = currentFilePath.replace(
         "/src",
         "/r3nd3rExtension/src"
       );
 
-      console.log(components);
+      console.log("Word under cursor: ", getWordUnderCursor());
       vscode.window.showInformationMessage(
         `${currentComponet} ${currentFilePath}`
       );
-      setup(rootFolder, currentComponet, r3nd3rComponentFilePath);
-      startServer(rootFolder);
+      setup(rootFolder, currentComponet, r3nd3rComponentFilePath, content);
+      startServer(rootFolder, currentComponet);
       vscode.window.showInformationMessage("Rendering current component!");
     }
   );
@@ -137,6 +147,25 @@ function isTSXDocument(document: vscode.TextDocument): boolean {
     document.fileName.endsWith(".tsx")
   );
 }
+
+const getWordUnderCursor = () => {
+  const activeEditor = vscode.window.activeTextEditor;
+
+  if (!activeEditor) {
+    return null;
+  }
+
+  const cursorPosition = activeEditor.selection.active; // Get cursor position
+  const wordRange =
+    activeEditor.document.getWordRangeAtPosition(cursorPosition); // Get word range
+
+  if (wordRange) {
+    const word = activeEditor.document.getText(wordRange); // Extract the word
+    return word;
+  } else {
+    return null;
+  }
+};
 
 // This method is called when your extension is deactivated
 export function deactivate() {}
