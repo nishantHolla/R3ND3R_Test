@@ -17,7 +17,6 @@ function setup(
   const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
   const publicFolderPath = path.join(rootFolder, "public"); // Original public folder path
   const indexFilePath = path.join(rootFolder, "index.html"); // Original index.html file path
-
   if (fs.existsSync(extensionFolderPath)) {
     console.log("r3nd3rExtension folder exists. Clearing it...");
     clearFolder(extensionFolderPath); // Clear the folder contents
