@@ -17,7 +17,6 @@ function setup(
   const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
   const publicFolderPath = path.join(rootFolder, "public"); // Original public folder path
   const indexFilePath = path.join(rootFolder, "index.html"); // Original index.html file path
-
   if (fs.existsSync(extensionFolderPath)) {
     console.log("r3nd3rExtension folder exists. Clearing it...");
     clearFolder(extensionFolderPath); // Clear the folder contents
@@ -53,7 +52,8 @@ function setup(
 
   insertImportIfMissing(
     mainTsxPath,
-    `import ${componentName} from "${componentPath}"`
+    `import ${componentName} from "${componentPath}"`,
+    componentName
   );
 
   replaceAppComponent(mainTsxPath, componentName);
@@ -140,10 +140,12 @@ function createViteConfig(folderPath: string) {
  * @param filePath - The path to the main.tsx file.
  * @param importLine - The import line to add, e.g., `import { MyComponent } from "./MyComponent"`.
  */
-function insertImportIfMissing(filePath: string, importLine: string): void {
+function insertImportIfMissing(
+  filePath: string,
+  importLine: string,
+  componentName: string
+): void {
   try {
-    const componentName = extractComponentName(importLine);
-
     // Read the content of the file
     const content = fs.readFileSync(filePath, "utf8");
 
