@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { startServer } from "./server";
+import { setup } from "./setup";
 import {
   getCurrentFileContent,
   getCurrentFileName,
@@ -20,8 +21,14 @@ export function activate(context: vscode.ExtensionContext) {
   const renderDisposable = vscode.commands.registerCommand(
     "r3nd3r.render",
     () => {
+      if (!vscode.workspace.workspaceFolders) {
+        vscode.window.showErrorMessage("No workspace detected");
+        return;
+      }
+
       const filename = getCurrentFileName();
       const content = getCurrentFileContent();
+      const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
       if (!filename || !content || !checkIfReactFile(content, filename)) {
         vscode.window.showErrorMessage(
@@ -30,7 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      startServer();
+      setup(rootFolder);
+      startServer(rootFolder);
       vscode.window.showInformationMessage("Rendering current component!");
     }
   );
