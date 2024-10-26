@@ -28,18 +28,43 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(__webpack_require__(1));
+const babelParser = __importStar(__webpack_require__(8));
 const server_1 = __webpack_require__(2);
 const setup_1 = __webpack_require__(5);
 const parser_1 = __webpack_require__(174);
+const fs_1 = __importDefault(__webpack_require__(6));
 function activate(context) {
     console.log('Congratulations, your extension "r3nd3r" is now active!');
     // The commandId parameter must match the command field in package.json
     const helloWOrldDisposable = vscode.commands.registerCommand("r3nd3r.helloWorld", () => {
         vscode.window.showInformationMessage("Hello World from R3ND3R!");
+    });
+    vscode.workspace.onDidChangeTextDocument((event) => {
+        const activeEditor = vscode.window.activeTextEditor;
+        // Check if the document that changed is the active one
+        if (activeEditor && event.document === activeEditor.document) {
+            const text = activeEditor.document.getText();
+            const documentPath = activeEditor.document.uri.fsPath.replace("/src", "/r3nd3rExtension/src");
+            // Parse the text to check for valid JSX/TSX
+            try {
+                babelParser.parse(text, {
+                    sourceType: "module",
+                    plugins: ["jsx", "typescript"], // Include plugins for JSX and TSX
+                });
+                console.log("Valid JSX/TSX syntax.");
+                fs_1.default.writeFileSync(documentPath, text, "utf-8");
+            }
+            catch (error) {
+                console.log("Invalid JSX/TSX syntax:", error.message);
+            }
+        }
     });
     const renderDisposable = vscode.commands.registerCommand("r3nd3r.render", () => {
         if (!vscode.workspace.workspaceFolders) {
