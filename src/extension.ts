@@ -5,6 +5,7 @@ import {
   getCurrentFileContent,
   getCurrentFileName,
   checkIfReactFile,
+  getComponents,
 } from "./parser";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -36,6 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
         );
         return;
       }
+
+      vscode.window.showInformationMessage(getComponents(content).join(" "));
 
       setup(rootFolder);
       startServer(rootFolder);
