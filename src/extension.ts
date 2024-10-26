@@ -1,25 +1,79 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const getCurrentFileContent = () => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    return null;
+  }
+
+  const document = editor.document;
+  const content = document.getText();
+
+  return content;
+};
+
+const getCurrentFileName = () => {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    return null;
+  }
+
+  const name = editor.document.fileName;
+  return name;
+};
+
+const checkIfReactFile = (content: string, filename: string) => {
+  if (!filename.endsWith(".jsx")) return false;
+
+  const hasReactImport = /import\s+React\b|from\s+['"]react['"]/g.test(content);
+  const hasFunctionComponent =
+    /function\s+\w+\s*\([^)]*\)\s*{[^}]*return\s*<[^>]+>/g.test(content);
+  const hasArrowFunctionComponent =
+    /const\s+\w+\s*=\s*\([^)]*\)\s*=>\s*{[^}]*return\s*<[^>]+>/g.test(content);
+  const hasClassComponent = /class\s+\w+\s+extends\s+React\.Component/g.test(
+    content
+  );
+
+  return (
+    hasReactImport ||
+    hasFunctionComponent ||
+    hasArrowFunctionComponent ||
+    hasClassComponent
+  );
+};
+
 export function activate(context: vscode.ExtensionContext) {
+  console.log('Congratulations, your extension "r3nd3r" is now active!');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "r3nd3r" is now active!');
+  // The commandId parameter must match the command field in package.json
+  const helloWOrldDisposable = vscode.commands.registerCommand(
+    "r3nd3r.helloWorld",
+    () => {
+      vscode.window.showInformationMessage("Hello World from R3ND3R!");
+    }
+  );
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('r3nd3r.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from R3ND3R!');
-	});
+  const renderDisposable = vscode.commands.registerCommand(
+    "r3nd3r.render",
+    () => {
+      const filename = getCurrentFileName();
+      const content = getCurrentFileContent();
 
-	context.subscriptions.push(disposable);
+      if (!filename || !content || !checkIfReactFile(content, filename)) {
+        vscode.window.showErrorMessage(
+          "Current file is not a react file. Please run the extensioin in a react component."
+        );
+        return;
+      }
+
+      vscode.window.showInformationMessage("Rendering current component!");
+      console.log(getCurrentFileContent());
+    }
+  );
+
+  context.subscriptions.push(helloWOrldDisposable);
 }
 
 // This method is called when your extension is deactivated
