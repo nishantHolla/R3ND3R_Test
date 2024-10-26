@@ -4,28 +4,26 @@
 
 const path = require('path');
 
-//@ts-check
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 /** @type WebpackConfig */
 const extensionConfig = {
   target: 'node', // VS Code extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
-	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
+  mode: 'none', // 'none' leaves the code unminified, ideal for development
 
-  entry: './src/extension.ts', // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
+  entry: './src/extension.ts', // the entry point of the extension
   output: {
-    // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
-    path: path.resolve(__dirname, 'dist'),
+    // the bundle is stored in the 'out' folder (consistent with package.json main setting)
+    path: path.resolve(__dirname, 'out'),
     filename: 'extension.js',
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'commonjs2' // for VS Code compatibility
   },
   externals: {
-    vscode: 'commonjs vscode' // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-    // modules added here also need to be added in the .vscodeignore file
+    vscode: 'commonjs vscode' // VS Code modules need to be external
   },
   resolve: {
-    // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
-    extensions: ['.ts', '.js']
+    // support reading TypeScript, JavaScript, and JSX files
+    extensions: ['.ts', '.js', '.jsx']
   },
   module: {
     rules: [
@@ -37,12 +35,26 @@ const extensionConfig = {
             loader: 'ts-loader'
           }
         ]
+      },
+      {
+        test: /\.jsx?$/, // process .jsx files with Babel
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              '@babel/preset-env', // Transpile modern JS
+              '@babel/preset-react' // Transpile JSX
+            ]
+          }
+        }
       }
     ]
   },
-  devtool: 'nosources-source-map',
+  devtool: 'source-map', // for easier debugging with source maps
   infrastructureLogging: {
-    level: "log", // enables logging required for problem matchers
-  },
+    level: 'log', // enables logging required for problem matchers
+  }
 };
-module.exports = [ extensionConfig ];
+
+module.exports = [extensionConfig];
