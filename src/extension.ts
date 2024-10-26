@@ -30,17 +30,33 @@ export function activate(context: vscode.ExtensionContext) {
       const filename = getCurrentFileName();
       const content = getCurrentFileContent();
       const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      const currentFileUri = vscode.window.activeTextEditor?.document.uri;
+      const currentFilePath = currentFileUri?.fsPath;
+
+      if (!currentFilePath) {
+        vscode.window.showErrorMessage("Could not find current file path.");
+        return;
+      }
 
       if (!filename || !content || !checkIfReactFile(content, filename)) {
         vscode.window.showErrorMessage(
-          "Current file is not a react file. Please run the extensioin in a react component."
+          "Current file is not a react file. Please run the extension in a react component."
         );
         return;
       }
 
-      vscode.window.showInformationMessage(getComponents(content).join(" "));
+      const components = getComponents(content);
+      const currentComponet = components[0];
+      const r3nd3rComponentFilePath = currentFilePath.replace(
+        "/src",
+        "/r3nd3rExtension/src"
+      );
 
-      setup(rootFolder);
+      console.log(components);
+      vscode.window.showInformationMessage(
+        `${currentComponet} ${currentFilePath}`
+      );
+      setup(rootFolder, currentComponet, r3nd3rComponentFilePath);
       startServer(rootFolder);
       vscode.window.showInformationMessage("Rendering current component!");
     }
