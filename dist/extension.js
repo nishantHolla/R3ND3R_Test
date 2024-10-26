@@ -32,7 +32,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(__webpack_require__(1));
-const server_1 = __webpack_require__(3);
+const server_1 = __webpack_require__(2);
 const parser_1 = __webpack_require__(4);
 function activate(context) {
     console.log('Congratulations, your extension "r3nd3r" is now active!');
@@ -64,12 +64,6 @@ module.exports = require("vscode");
 
 /***/ }),
 /* 2 */
-/***/ ((module) => {
-
-module.exports = require("child_process");
-
-/***/ }),
-/* 3 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -99,7 +93,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.startServer = void 0;
 const vscode = __importStar(__webpack_require__(1));
-const child_process = __importStar(__webpack_require__(2));
+const child_process = __importStar(__webpack_require__(3));
 const startServer = () => {
     if (!vscode.workspace.workspaceFolders) {
         return;
@@ -107,7 +101,7 @@ const startServer = () => {
     const rootFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const panel = vscode.window.createWebviewPanel("vitePreview", "Vite Project Preview", vscode.ViewColumn.Beside, { enableScripts: true });
     console.log("ok");
-    const viteProcess = child_process.spawn("C:\\Program Files\\nodejs\\npm.exe", ["run", "dev"], {
+    const viteProcess = child_process.spawn("/opt/homebrew/bin/npm", ["run", "dev"], {
         cwd: rootFolder,
     });
     viteProcess.on("error", (err) => {
@@ -130,6 +124,12 @@ function getWebviewContent(viteUrl) {
         </html>`;
 }
 
+
+/***/ }),
+/* 3 */
+/***/ ((module) => {
+
+module.exports = require("child_process");
 
 /***/ }),
 /* 4 */
