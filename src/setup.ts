@@ -11,7 +11,8 @@ import * as t from "@babel/types";
 function setup(
   rootFolder: string,
   componentName: string,
-  componentPath: string
+  componentPath: string,
+  content: string
 ) {
   const extensionFolderPath = path.join(rootFolder, "r3nd3rExtension");
   const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
@@ -50,11 +51,12 @@ function setup(
     "main.tsx"
   );
 
-  insertImportIfMissing(
-    mainTsxPath,
-    `import ${componentName} from "${componentPath}"`,
-    componentName
-  );
+  let importStatement = `import {${componentName}} from "${componentPath}"`;
+  if (content.includes("export default")) {
+    importStatement = `import ${componentName} from "${componentPath}"`;
+  }
+
+  insertImportIfMissing(mainTsxPath, importStatement, componentName);
 
   replaceAppComponent(mainTsxPath, componentName);
 }

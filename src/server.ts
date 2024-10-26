@@ -20,7 +20,7 @@ function detectNpxPath(): Promise<string> {
   });
 }
 
-const startServer = async (rootFolder: string) => {
+const startServer = async (rootFolder: string, componentName: string) => {
   if (!vscode.workspace.workspaceFolders) {
     vscode.window.showErrorMessage("No workspace folder open.");
     return;
@@ -32,7 +32,7 @@ const startServer = async (rootFolder: string) => {
 
     const panel = vscode.window.createWebviewPanel(
       "vitePreview",
-      "Vite Project Preview",
+      `Preview ${componentName}`,
       vscode.ViewColumn.Beside,
       { enableScripts: true }
     );
