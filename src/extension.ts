@@ -1,48 +1,10 @@
 import * as vscode from "vscode";
-
-const getCurrentFileContent = () => {
-  const editor = vscode.window.activeTextEditor;
-
-  if (!editor) {
-    return null;
-  }
-
-  const document = editor.document;
-  const content = document.getText();
-
-  return content;
-};
-
-const getCurrentFileName = () => {
-  const editor = vscode.window.activeTextEditor;
-
-  if (!editor) {
-    return null;
-  }
-
-  const name = editor.document.fileName;
-  return name;
-};
-
-const checkIfReactFile = (content: string, filename: string) => {
-  if (!filename.endsWith(".jsx")) return false;
-
-  const hasReactImport = /import\s+React\b|from\s+['"]react['"]/g.test(content);
-  const hasFunctionComponent =
-    /function\s+\w+\s*\([^)]*\)\s*{[^}]*return\s*<[^>]+>/g.test(content);
-  const hasArrowFunctionComponent =
-    /const\s+\w+\s*=\s*\([^)]*\)\s*=>\s*{[^}]*return\s*<[^>]+>/g.test(content);
-  const hasClassComponent = /class\s+\w+\s+extends\s+React\.Component/g.test(
-    content
-  );
-
-  return (
-    hasReactImport ||
-    hasFunctionComponent ||
-    hasArrowFunctionComponent ||
-    hasClassComponent
-  );
-};
+import { startServer } from "./server";
+import {
+  getCurrentFileContent,
+  getCurrentFileName,
+  checkIfReactFile,
+} from "./parser";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "r3nd3r" is now active!');
@@ -68,8 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
+      startServer();
       vscode.window.showInformationMessage("Rendering current component!");
-      console.log(getCurrentFileContent());
     }
   );
 
