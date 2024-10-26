@@ -1,4 +1,4 @@
-# r3nd3r README
+# r3nd3r
 
 This is the README for your extension "r3nd3r". After writing up a brief description, we recommend including the following sections.
 
