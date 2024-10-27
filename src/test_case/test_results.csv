@@ -1,0 +1,6 @@
+Test Case,Status,Suite
+renders with text prop,passed,/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx
+handles click events,passed,/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx
+applies custom className,passed,/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx
+renders with different text props,passed,/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx
+maintains accessibility features,passed,/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx
