@@ -15,8 +15,7 @@ import safeParser from "postcss-safe-parser";
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "r3nd3r" is now active!');
 
-  // The commandId parameter must match the command field in package.json
-  const helloWOrldDisposable = vscode.commands.registerCommand(
+  const helloWorldDisposable = vscode.commands.registerCommand(
     "r3nd3r.helloWorld",
     () => {
       vscode.window.showInformationMessage("Hello World from R3ND3R!");
@@ -42,7 +41,6 @@ export function activate(context: vscode.ExtensionContext) {
             .then((result) => {
               console.log("Valid CSS syntax.");
               fs.writeFileSync(documentPath, text, "utf-8");
-              // Further processing can be done here if needed
             })
             .catch((error) => {
               console.log("Invalid CSS syntax:", error.message);
@@ -73,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const renderDisposable = vscode.commands.registerCommand(
     "r3nd3r.render",
-    () => {
+    async () => {
       if (!vscode.workspace.workspaceFolders) {
         vscode.window.showErrorMessage("No workspace detected");
         return;
@@ -100,11 +98,11 @@ export function activate(context: vscode.ExtensionContext) {
       const components = getComponents(content);
       const word = getWordUnderCursor();
 
-      const currentComponet = components.includes(word || "")
+      const currentComponent = components.includes(word || "")
         ? word
         : components[0];
 
-      if (!components || !currentComponet) {
+      if (!components || !currentComponent) {
         vscode.window.showErrorMessage("Could not find a react component");
         return;
       }
@@ -116,24 +114,87 @@ export function activate(context: vscode.ExtensionContext) {
 
       console.log("Word under cursor: ", getWordUnderCursor());
       vscode.window.showInformationMessage(
-        `${currentComponet} ${currentFilePath}`
+        `${currentComponent} ${currentFilePath}`
       );
-      setup(rootFolder, currentComponet, r3nd3rComponentFilePath, content);
-      startServer(rootFolder, currentComponet);
+      setup(rootFolder, currentComponent, r3nd3rComponentFilePath, content);
+      startServer(rootFolder, currentComponent);
       vscode.window.showInformationMessage("Rendering current component!");
+
+      // After running the tests, show results in a new window
+      await showTestResults();
     }
   );
 
-  context.subscriptions.push(helloWOrldDisposable);
+  context.subscriptions.push(helloWorldDisposable, renderDisposable);
+}
+
+async function showTestResults() {
+  const testResults = await getTestResults(); // Replace with your actual method to get test results
+  const panel = vscode.window.createWebviewPanel(
+    "testResults", // Identifies the type of the webview. Used internally
+    "Test Results", // Title of the panel displayed to the user
+    vscode.ViewColumn.One, // Editor column to show the new webview panel in
+    {} // Webview options
+  );
+
+  panel.webview.html = getWebviewContent(testResults);
+}
+
+function getWebviewContent(testResults: any) {
+  // Generate HTML content to display test results
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border: 1px solid #ccc; }
+        th { background-color: #f4f4f4; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Test Results</h1>
+    <table>
+        <tr>
+            <th>Test Case</th>
+            <th>Status</th>
+        </tr>
+        ${testResults
+          .map(
+            (result: any) => `
+        <tr>
+            <td>${result.testCase}</td>
+            <td>${result.status}</td>
+        </tr>`
+          )
+          .join("")}
+    </table>
+</body>
+</html>`;
+}
+
+async function getTestResults() {
+  // Here you should implement logic to read the Jest test results
+  // This is a placeholder, replace with your actual logic to fetch results
+  const results = [
+    { testCase: "renders with text prop", status: "passed" },
+    { testCase: "handles click events", status: "passed" },
+    { testCase: "applies custom className", status: "passed" },
+    { testCase: "renders with different text props", status: "passed" },
+    { testCase: "maintains accessibility features", status: "passed" },
+  ];
+  return results;
 }
 
 function isCSSDocument(document: vscode.TextDocument): boolean {
-  // Optionally check if the file extension is .css
   return document.languageId === "css" || document.fileName.endsWith(".css");
 }
 
 function isJSXDocument(document: vscode.TextDocument): boolean {
-  // Checks if the language is JavaScript React (JSX) or if the filename ends with .jsx
   return (
     document.languageId === "javascriptreact" ||
     document.fileName.endsWith(".jsx")
@@ -141,7 +202,6 @@ function isJSXDocument(document: vscode.TextDocument): boolean {
 }
 
 function isTSXDocument(document: vscode.TextDocument): boolean {
-  // Checks if the language is TypeScript React (TSX) or if the filename ends with .tsx
   return (
     document.languageId === "typescriptreact" ||
     document.fileName.endsWith(".tsx")
