@@ -21,9 +21,9 @@ RenderTest automates the rendering, previewing, and testing of React components 
 
 ## 📊 Flowchart
 
-![Flowchart1](Assets/Flowchart1.jpeg)
-![Flowchart2](Assets/Flowchart2.jpeg)
-
+![Flowchart1](Assets/R3ND3R.png)
+![Flowchart2](Assets/Preview.png)
+![Flowchart3](Assets/UnitTesting.png)
 ---
 
 # 🎯 Target Audience
@@ -76,7 +76,7 @@ RenderTest automates the rendering, previewing, and testing of React components 
 
 ## 🔄 Setup
 
-1. **Generate a new SSH key** and add it to GitHub.  
+1. **Generate a new SSH key** and add it to GitHub.
    [Follow this video](https://www.youtube.com/watch?v=O5H_KFzla6M).
 
 2. **Clone the repository**:
