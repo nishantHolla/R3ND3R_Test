@@ -64,6 +64,7 @@ function activate(context) {
                     })
                         .catch((error) => {
                         console.log("Invalid CSS syntax:", error.message);
+                        vscode.window.showErrorMessage(`CSS syntax error ${error.message}`);
                     });
                 }
                 catch (error) {
@@ -83,6 +84,7 @@ function activate(context) {
                 }
                 catch (error) {
                     console.log("Invalid JSX/TSX syntax:", error.message);
+                    vscode.window.showErrorMessage(`JS syntax error ${error.message}`);
                 }
             }
         }
@@ -116,7 +118,9 @@ function activate(context) {
         }
         const r3nd3rComponentFilePath = currentFilePath.replace("/src", "/r3nd3rExtension/src");
         console.log("Word under cursor: ", getWordUnderCursor());
-        vscode.window.showInformationMessage(`${currentComponent} ${currentFilePath}`);
+        // vscode.window.showInformationMessage(
+        //   `${currentComponent} ${currentFilePath}`
+        // );
         (0, setup_1.setup)(rootFolder, currentComponent, r3nd3rComponentFilePath, content);
         (0, server_1.startServer)(rootFolder, currentComponent);
         vscode.window.showInformationMessage("Rendering current component!");

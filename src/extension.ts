@@ -44,6 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
             })
             .catch((error) => {
               console.log("Invalid CSS syntax:", error.message);
+              vscode.window.showErrorMessage(
+                `CSS syntax error ${error.message}`
+              );
             });
         } catch (error: any) {
           console.log("Error parsing CSS:", error.message);
@@ -64,6 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
           fs.writeFileSync(documentPath, text, "utf-8");
         } catch (error: any) {
           console.log("Invalid JSX/TSX syntax:", error.message);
+          vscode.window.showErrorMessage(`JS syntax error ${error.message}`);
         }
       }
     }
@@ -113,9 +117,9 @@ export function activate(context: vscode.ExtensionContext) {
       );
 
       console.log("Word under cursor: ", getWordUnderCursor());
-      vscode.window.showInformationMessage(
-        `${currentComponent} ${currentFilePath}`
-      );
+      // vscode.window.showInformationMessage(
+      //   `${currentComponent} ${currentFilePath}`
+      // );
       setup(rootFolder, currentComponent, r3nd3rComponentFilePath, content);
       startServer(rootFolder, currentComponent);
       vscode.window.showInformationMessage("Rendering current component!");
