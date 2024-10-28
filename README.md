@@ -108,6 +108,7 @@ RenderTest automates the rendering, previewing, and testing of React components 
 - **Real-Time Alerting**: Notify developers of UI issues with email/SMS alerts.
 - **Adaptive Testing**: Integrate reinforcement learning for smarter test case generation.
 - **Component Analytics**: Track component usage and performance metrics.
+- **Expanded Availability**: Offer as both a VS Code extension and a standalone plugin.
 
 ## 📜 License
 
