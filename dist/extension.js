@@ -35,13 +35,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(__webpack_require__(1));
-const babelParser = __importStar(__webpack_require__(8));
-const server_1 = __webpack_require__(2);
-const setup_1 = __webpack_require__(5);
+const babelParser = __importStar(__webpack_require__(2));
+const server_1 = __webpack_require__(3);
+const setup_1 = __webpack_require__(6);
 const parser_1 = __webpack_require__(174);
-const fs_1 = __importDefault(__webpack_require__(6));
-const postcss_1 = __importDefault(__webpack_require__(176));
-const postcss_safe_parser_1 = __importDefault(__webpack_require__(175));
+const fs_1 = __importDefault(__webpack_require__(7));
+const postcss_1 = __importDefault(__webpack_require__(175));
+const postcss_safe_parser_1 = __importDefault(__webpack_require__(216));
 function activate(context) {
     console.log('Congratulations, your extension "r3nd3r" is now active!');
     const helloWorldDisposable = vscode.commands.registerCommand("r3nd3r.helloWorld", () => {
@@ -117,6 +117,7 @@ function activate(context) {
             return;
         }
         const r3nd3rComponentFilePath = currentFilePath.replace("/src", "/r3nd3rExtension/src");
+        console.log(`The file path of the component is: {r3nd3rComponentFilePath}`);
         console.log("Word under cursor: ", getWordUnderCursor());
         // vscode.window.showInformationMessage(
         //   `${currentComponent} ${currentFilePath}`
@@ -223,371 +224,6 @@ module.exports = require("vscode");
 
 /***/ }),
 /* 2 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.startServer = void 0;
-const vscode = __importStar(__webpack_require__(1));
-const child_process = __importStar(__webpack_require__(3));
-const os = __importStar(__webpack_require__(4));
-function detectNpxPath() {
-    return new Promise((resolve, reject) => {
-        const command = os.platform() === "win32" ? "where" : "which";
-        child_process.exec(`${command} npx`, (error, stdout) => {
-            if (error) {
-                vscode.window.showErrorMessage("Unable to find npx. Please ensure it is installed.");
-                reject(new Error("npx not found in PATH"));
-            }
-            else {
-                const npxPath = stdout.trim().split("\n")[0]; // Use the first path found
-                resolve(npxPath);
-            }
-        });
-    });
-}
-const startServer = async (rootFolder, componentName) => {
-    if (!vscode.workspace.workspaceFolders) {
-        vscode.window.showErrorMessage("No workspace folder open.");
-        return;
-    }
-    try {
-        const npxPath = await detectNpxPath();
-        console.log(`Using npx from: ${npxPath}`);
-        const panel = vscode.window.createWebviewPanel("vitePreview", `Preview ${componentName}`, vscode.ViewColumn.Beside, { enableScripts: true });
-        const viteProcess = child_process.spawn(npxPath, ["vite", "--config", "r3nd3rExtension/vite.config.js"], {
-            cwd: rootFolder,
-            shell: os.platform() !== "win32",
-            env: process.env,
-        });
-        viteProcess.on("error", (err) => {
-            if (err instanceof Error) {
-                vscode.window.showErrorMessage(`Failed to start Vite process: ${err.message}`);
-                console.error("Failed to start Vite process:", err);
-            }
-            else {
-                console.error("An unknown error occurred:", err);
-            }
-        });
-        viteProcess.stdout.on("data", (data) => {
-            const output = data.toString();
-            const match = output.match(/localhost:\d+/);
-            if (match) {
-                const viteUrl = `http://${match[0]}`;
-                panel.webview.html = getWebviewContent(viteUrl);
-            }
-        });
-        panel.onDidDispose(() => viteProcess.kill(), null); // Kill the process on panel dispose
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            console.error(`Error: ${error.message}`);
-        }
-        else {
-            console.error("An unknown error occurred:", error);
-        }
-    }
-};
-exports.startServer = startServer;
-function getWebviewContent(viteUrl) {
-    return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <body style="margin:0; padding:0; overflow:hidden;">
-      <iframe src="${viteUrl}" frameborder="0" style="width:100%; height:100vh;"></iframe>
-    </body>
-    </html>`;
-}
-
-
-/***/ }),
-/* 3 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");
-
-/***/ }),
-/* 4 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("os");
-
-/***/ }),
-/* 5 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = setup;
-const fs = __importStar(__webpack_require__(6));
-const path = __importStar(__webpack_require__(7));
-const parser_1 = __webpack_require__(8);
-const traverse_1 = __importDefault(__webpack_require__(9));
-const generator_1 = __importDefault(__webpack_require__(121));
-const t = __importStar(__webpack_require__(28));
-/**
- * Clears the folder if it exists, otherwise creates a new folder.
- */
-function setup(rootFolder, componentName, componentPath, content) {
-    const extensionFolderPath = path.join(rootFolder, "r3nd3rExtension");
-    const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
-    const publicFolderPath = path.join(rootFolder, "public"); // Original public folder path
-    const indexFilePath = path.join(rootFolder, "index.html"); // Original index.html file path
-    if (fs.existsSync(extensionFolderPath)) {
-        console.log("r3nd3rExtension folder exists. Clearing it...");
-        clearFolder(extensionFolderPath); // Clear the folder contents
-    }
-    else {
-        console.log("r3nd3rExtension folder does not exist. Creating it...");
-        fs.mkdirSync(extensionFolderPath);
-    }
-    // Create the src folder inside r3nd3rExtension
-    const newSrcFolderPath = path.join(extensionFolderPath, "src");
-    fs.mkdirSync(newSrcFolderPath);
-    // Copy the contents of the original src folder into the new src folder
-    copyFolderContents(srcFolderPath, newSrcFolderPath);
-    // Copy the contents of the original public folder into the new public folder
-    const newPublicFolderPath = path.join(extensionFolderPath, "public");
-    copyFolderContents(publicFolderPath, newPublicFolderPath);
-    // Create the Vite config file
-    createViteConfig(extensionFolderPath);
-    // Copy the index.html file from root to r3nd3rExtension
-    const newIndexHTMLPath = path.join(extensionFolderPath, "index.html");
-    fs.copyFileSync(indexFilePath, newIndexHTMLPath);
-    const mainTsxPath = path.join(rootFolder, "r3nd3rExtension", "src", "main.tsx");
-    let importStatement = `import {${componentName}} from "${componentPath}"`;
-    if (content.includes("export default")) {
-        importStatement = `import ${componentName} from "${componentPath}"`;
-    }
-    insertImportIfMissing(mainTsxPath, importStatement, componentName);
-    replaceAppComponent(mainTsxPath, componentName);
-}
-/**
- * Recursively clears the contents of a folder.
- */
-function clearFolder(folderPath) {
-    const files = fs.readdirSync(folderPath);
-    for (const file of files) {
-        const filePath = path.join(folderPath, file);
-        const stat = fs.statSync(filePath);
-        if (stat.isDirectory()) {
-            // If it's a folder, recursively remove its contents
-            clearFolder(filePath);
-            fs.rmdirSync(filePath); // Remove the empty folder
-        }
-        else {
-            // If it's a file, remove it
-            fs.unlinkSync(filePath);
-        }
-    }
-}
-/**
- * Copies the contents of one folder to another.
- */
-function copyFolderContents(src, dest) {
-    // Create the destination folder if it doesn't exist
-    if (!fs.existsSync(dest)) {
-        fs.mkdirSync(dest);
-    }
-    const items = fs.readdirSync(src);
-    for (const item of items) {
-        const srcPath = path.join(src, item);
-        const destPath = path.join(dest, item);
-        const stat = fs.statSync(srcPath);
-        if (stat.isDirectory()) {
-            // Recursively copy directories
-            copyFolderContents(srcPath, destPath);
-        }
-        else {
-            // Copy files
-            fs.copyFileSync(srcPath, destPath);
-        }
-    }
-}
-/**
- * Creates a `vite.config.js` file with predefined content.
- */
-function createViteConfig(folderPath) {
-    const viteConfigContent = `
-    import { defineConfig } from 'vite'
-    import react from '@vitejs/plugin-react'
-    
-    // https://vite.dev/config/
-    export default defineConfig({
-      plugins: [react()],
-      root: './r3nd3rExtension', // Specify root for Vite
-      build: {
-        outDir: 'dist', // Output directory for builds
-      },
-      server: {
-        port: 3000 // Specify server port
-      }
-    })
-    `.trim();
-    const viteConfigPath = path.join(folderPath, "vite.config.js");
-    // Write the content to the Vite config file
-    fs.writeFileSync(viteConfigPath, viteConfigContent);
-    console.log("Vite config file created at:", viteConfigPath);
-}
-/**
- * Inserts a new import statement at the start of the given file if it doesn't already exist.
- * @param filePath - The path to the main.tsx file.
- * @param importLine - The import line to add, e.g., `import { MyComponent } from "./MyComponent"`.
- */
-function insertImportIfMissing(filePath, importLine, componentName) {
-    try {
-        // Read the content of the file
-        const content = fs.readFileSync(filePath, "utf8");
-        // Parse the file content into an AST
-        const ast = (0, parser_1.parse)(content, {
-            sourceType: "module",
-            plugins: ["jsx", "typescript"], // Support for TSX and JSX
-        });
-        let importExists = false;
-        // Traverse the AST to find all import declarations
-        (0, traverse_1.default)(ast, {
-            ImportDeclaration(path) {
-                const importedNames = path.node.specifiers.map((specifier) => specifier.local.name);
-                if (importedNames.includes(componentName)) {
-                    importExists = true;
-                    path.stop(); // Stop traversal once found
-                }
-            },
-        });
-        if (importExists) {
-            console.log(`Import for ${componentName} already exists.`);
-            return;
-        }
-        // If import doesn't exist, add it at the beginning
-        const newContent = `${importLine}\n${content}`;
-        // Write the updated content back to the file
-        fs.writeFileSync(filePath, newContent, "utf8");
-        console.log(`Inserted import: ${importLine}`);
-    }
-    catch (error) {
-        console.error(`Failed to insert import: ${error.message}`);
-    }
-}
-/**
- * Extracts the component name from an import line.
- * @param importLine - The import line string.
- * @returns The component name.
- */
-function extractComponentName(importLine) {
-    const match = importLine.match(/\{(.+)\}/);
-    return match ? match[1].trim() : "";
-}
-/**
- * Replaces <App /> in the main.tsx file with the given component.
- * @param filePath - The path to the main.tsx file.
- * @param newComponentName - The name of the new component to replace <App /> with.
- */
-function replaceAppComponent(filePath, newComponentName) {
-    if (newComponentName === "App")
-        return;
-    try {
-        // Read the content of the file
-        const content = fs.readFileSync(filePath, "utf8");
-        // Parse the content into an AST
-        const ast = (0, parser_1.parse)(content, {
-            sourceType: "module",
-            plugins: ["jsx", "typescript"], // Support for JSX and TSX
-        });
-        // Traverse the AST to find <App /> and replace it with <newComponentName />
-        (0, traverse_1.default)(ast, {
-            JSXElement(path) {
-                const openingElement = path.node.openingElement;
-                // Check if the JSX element is <App />
-                if (t.isJSXIdentifier(openingElement.name) &&
-                    openingElement.name.name === "App") {
-                    console.log("<App /> component found. Replacing...");
-                    // Replace <App /> with <newComponentName />
-                    path.replaceWith(t.jsxElement(t.jsxOpeningElement(t.jsxIdentifier(newComponentName), []), t.jsxClosingElement(t.jsxIdentifier(newComponentName)), [], // No children inside the component tag
-                    false));
-                }
-            },
-        });
-        // Generate the updated code from the modified AST
-        const { code: updatedCode } = (0, generator_1.default)(ast);
-        // Write the updated code back to the file
-        fs.writeFileSync(filePath, updatedCode, "utf8");
-        console.log(`<App /> replaced with <${newComponentName} /> in ${filePath}`);
-    }
-    catch (error) {
-        console.error(`Failed to replace component: ${error.message}`);
-    }
-}
-
-
-/***/ }),
-/* 6 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs");
-
-/***/ }),
-/* 7 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
-/***/ }),
-/* 8 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -14615,6 +14251,371 @@ exports.parseExpression = parseExpression;
 exports.tokTypes = tokTypes;
 //# sourceMappingURL=index.js.map
 
+
+/***/ }),
+/* 3 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.startServer = void 0;
+const vscode = __importStar(__webpack_require__(1));
+const child_process = __importStar(__webpack_require__(4));
+const os = __importStar(__webpack_require__(5));
+function detectNpxPath() {
+    return new Promise((resolve, reject) => {
+        const command = os.platform() === "win32" ? "where" : "which";
+        child_process.exec(`${command} npx`, (error, stdout) => {
+            if (error) {
+                vscode.window.showErrorMessage("Unable to find npx. Please ensure it is installed.");
+                reject(new Error("npx not found in PATH"));
+            }
+            else {
+                const npxPath = stdout.trim().split("\n")[0]; // Use the first path found
+                resolve(npxPath);
+            }
+        });
+    });
+}
+const startServer = async (rootFolder, componentName) => {
+    if (!vscode.workspace.workspaceFolders) {
+        vscode.window.showErrorMessage("No workspace folder open.");
+        return;
+    }
+    try {
+        const npxPath = await detectNpxPath();
+        console.log(`Using npx from: ${npxPath}`);
+        const panel = vscode.window.createWebviewPanel("vitePreview", `Preview ${componentName}`, vscode.ViewColumn.Beside, { enableScripts: true });
+        const viteProcess = child_process.spawn(npxPath, ["vite", "--config", "r3nd3rExtension/vite.config.js"], {
+            cwd: rootFolder,
+            shell: os.platform() !== "win32",
+            env: process.env,
+        });
+        viteProcess.on("error", (err) => {
+            if (err instanceof Error) {
+                vscode.window.showErrorMessage(`Failed to start Vite process: ${err.message}`);
+                console.error("Failed to start Vite process:", err);
+            }
+            else {
+                console.error("An unknown error occurred:", err);
+            }
+        });
+        viteProcess.stdout.on("data", (data) => {
+            const output = data.toString();
+            const match = output.match(/localhost:\d+/);
+            if (match) {
+                const viteUrl = `http://${match[0]}`;
+                panel.webview.html = getWebviewContent(viteUrl);
+            }
+        });
+        panel.onDidDispose(() => viteProcess.kill(), null); // Kill the process on panel dispose
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error(`Error: ${error.message}`);
+        }
+        else {
+            console.error("An unknown error occurred:", error);
+        }
+    }
+};
+exports.startServer = startServer;
+function getWebviewContent(viteUrl) {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <body style="margin:0; padding:0; overflow:hidden;">
+      <iframe src="${viteUrl}" frameborder="0" style="width:100%; height:100vh;"></iframe>
+    </body>
+    </html>`;
+}
+
+
+/***/ }),
+/* 4 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
+
+/***/ }),
+/* 5 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+/* 6 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.setup = setup;
+const fs = __importStar(__webpack_require__(7));
+const path = __importStar(__webpack_require__(8));
+const parser_1 = __webpack_require__(2);
+const traverse_1 = __importDefault(__webpack_require__(9));
+const generator_1 = __importDefault(__webpack_require__(121));
+const t = __importStar(__webpack_require__(28));
+/**
+ * Clears the folder if it exists, otherwise creates a new folder.
+ */
+function setup(rootFolder, componentName, componentPath, content) {
+    const extensionFolderPath = path.join(rootFolder, "r3nd3rExtension");
+    const srcFolderPath = path.join(rootFolder, "src"); // Original src folder path
+    const publicFolderPath = path.join(rootFolder, "public"); // Original public folder path
+    const indexFilePath = path.join(rootFolder, "index.html"); // Original index.html file path
+    if (fs.existsSync(extensionFolderPath)) {
+        console.log("r3nd3rExtension folder exists. Clearing it...");
+        clearFolder(extensionFolderPath); // Clear the folder contents
+    }
+    else {
+        console.log("r3nd3rExtension folder does not exist. Creating it...");
+        fs.mkdirSync(extensionFolderPath);
+    }
+    // Create the src folder inside r3nd3rExtension
+    const newSrcFolderPath = path.join(extensionFolderPath, "src");
+    fs.mkdirSync(newSrcFolderPath);
+    // Copy the contents of the original src folder into the new src folder
+    copyFolderContents(srcFolderPath, newSrcFolderPath);
+    // Copy the contents of the original public folder into the new public folder
+    const newPublicFolderPath = path.join(extensionFolderPath, "public");
+    copyFolderContents(publicFolderPath, newPublicFolderPath);
+    // Create the Vite config file
+    createViteConfig(extensionFolderPath);
+    // Copy the index.html file from root to r3nd3rExtension
+    const newIndexHTMLPath = path.join(extensionFolderPath, "index.html");
+    fs.copyFileSync(indexFilePath, newIndexHTMLPath);
+    const mainTsxPath = path.join(rootFolder, "r3nd3rExtension", "src", "main.tsx");
+    let importStatement = `import {${componentName}} from "${componentPath}"`;
+    if (content.includes("export default")) {
+        importStatement = `import ${componentName} from "${componentPath}"`;
+    }
+    insertImportIfMissing(mainTsxPath, importStatement, componentName);
+    replaceAppComponent(mainTsxPath, componentName);
+}
+/**
+ * Recursively clears the contents of a folder.
+ */
+function clearFolder(folderPath) {
+    const files = fs.readdirSync(folderPath);
+    for (const file of files) {
+        const filePath = path.join(folderPath, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+            // If it's a folder, recursively remove its contents
+            clearFolder(filePath);
+            fs.rmdirSync(filePath); // Remove the empty folder
+        }
+        else {
+            // If it's a file, remove it
+            fs.unlinkSync(filePath);
+        }
+    }
+}
+/**
+ * Copies the contents of one folder to another.
+ */
+function copyFolderContents(src, dest) {
+    // Create the destination folder if it doesn't exist
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest);
+    }
+    const items = fs.readdirSync(src);
+    for (const item of items) {
+        const srcPath = path.join(src, item);
+        const destPath = path.join(dest, item);
+        const stat = fs.statSync(srcPath);
+        if (stat.isDirectory()) {
+            // Recursively copy directories
+            copyFolderContents(srcPath, destPath);
+        }
+        else {
+            // Copy files
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+/**
+ * Creates a `vite.config.js` file with predefined content.
+ */
+function createViteConfig(folderPath) {
+    const viteConfigContent = `
+    import { defineConfig } from 'vite'
+    import react from '@vitejs/plugin-react'
+
+    // https://vite.dev/config/
+    export default defineConfig({
+      plugins: [react()],
+      root: './r3nd3rExtension', // Specify root for Vite
+      build: {
+        outDir: 'dist', // Output directory for builds
+      },
+      server: {
+        port: 3000 // Specify server port
+      }
+    })
+    `.trim();
+    const viteConfigPath = path.join(folderPath, "vite.config.js");
+    // Write the content to the Vite config file
+    fs.writeFileSync(viteConfigPath, viteConfigContent);
+    console.log("Vite config file created at:", viteConfigPath);
+}
+/**
+ * Inserts a new import statement at the start of the given file if it doesn't already exist.
+ * @param filePath - The path to the main.tsx file.
+ * @param importLine - The import line to add, e.g., `import { MyComponent } from "./MyComponent"`.
+ */
+function insertImportIfMissing(filePath, importLine, componentName) {
+    try {
+        // Read the content of the file
+        const content = fs.readFileSync(filePath, "utf8");
+        // Parse the file content into an AST
+        const ast = (0, parser_1.parse)(content, {
+            sourceType: "module",
+            plugins: ["jsx", "typescript"], // Support for TSX and JSX
+        });
+        let importExists = false;
+        // Traverse the AST to find all import declarations
+        (0, traverse_1.default)(ast, {
+            ImportDeclaration(path) {
+                const importedNames = path.node.specifiers.map((specifier) => specifier.local.name);
+                if (importedNames.includes(componentName)) {
+                    importExists = true;
+                    path.stop(); // Stop traversal once found
+                }
+            },
+        });
+        if (importExists) {
+            console.log(`Import for ${componentName} already exists.`);
+            return;
+        }
+        // If import doesn't exist, add it at the beginning
+        const newContent = `${importLine}\n${content}`;
+        // Write the updated content back to the file
+        fs.writeFileSync(filePath, newContent, "utf8");
+        console.log(`Inserted import: ${importLine}`);
+    }
+    catch (error) {
+        console.error(`Failed to insert import: ${error.message}`);
+    }
+}
+/**
+ * Extracts the component name from an import line.
+ * @param importLine - The import line string.
+ * @returns The component name.
+ */
+function extractComponentName(importLine) {
+    const match = importLine.match(/\{(.+)\}/);
+    return match ? match[1].trim() : "";
+}
+/**
+ * Replaces <App /> in the main.tsx file with the given component.
+ * @param filePath - The path to the main.tsx file.
+ * @param newComponentName - The name of the new component to replace <App /> with.
+ */
+function replaceAppComponent(filePath, newComponentName) {
+    if (newComponentName === "App")
+        return;
+    try {
+        // Read the content of the file
+        const content = fs.readFileSync(filePath, "utf8");
+        // Parse the content into an AST
+        const ast = (0, parser_1.parse)(content, {
+            sourceType: "module",
+            plugins: ["jsx", "typescript"], // Support for JSX and TSX
+        });
+        // Traverse the AST to find <App /> and replace it with <newComponentName />
+        (0, traverse_1.default)(ast, {
+            JSXElement(path) {
+                const openingElement = path.node.openingElement;
+                // Check if the JSX element is <App />
+                if (t.isJSXIdentifier(openingElement.name) &&
+                    openingElement.name.name === "App") {
+                    console.log("<App /> component found. Replacing...");
+                    // Replace <App /> with <newComponentName />
+                    path.replaceWith(t.jsxElement(t.jsxOpeningElement(t.jsxIdentifier(newComponentName), []), t.jsxClosingElement(t.jsxIdentifier(newComponentName)), [], // No children inside the component tag
+                    false));
+                }
+            },
+        });
+        // Generate the updated code from the modified AST
+        const { code: updatedCode } = (0, generator_1.default)(ast);
+        // Write the updated code back to the file
+        fs.writeFileSync(filePath, updatedCode, "utf8");
+        console.log(`<App /> replaced with <${newComponentName} /> in ${filePath}`);
+    }
+    catch (error) {
+        console.error(`Failed to replace component: ${error.message}`);
+    }
+}
+
+
+/***/ }),
+/* 7 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+/* 8 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
 
 /***/ }),
 /* 9 */
@@ -41856,7 +41857,7 @@ var _index = __webpack_require__(9);
 var _index2 = __webpack_require__(13);
 var _cache = __webpack_require__(120);
 var _modification = __webpack_require__(156);
-var _parser = __webpack_require__(8);
+var _parser = __webpack_require__(2);
 var _t = __webpack_require__(28);
 var _context = __webpack_require__(10);
 const {
@@ -44234,7 +44235,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = parseAndBuildMetadata;
 var _t = __webpack_require__(28);
-var _parser = __webpack_require__(8);
+var _parser = __webpack_require__(2);
 var _codeFrame = __webpack_require__(153);
 const {
   isCallExpression,
@@ -45482,7 +45483,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getComponents = exports.getCurrentFileName = exports.getCurrentFileContent = void 0;
 exports.checkIfReactFile = checkIfReactFile;
 const vscode = __importStar(__webpack_require__(1));
-const parser_1 = __webpack_require__(8);
+const parser_1 = __webpack_require__(2);
 const traverse_1 = __importDefault(__webpack_require__(9));
 const getCurrentFileContent = () => {
     const editor = vscode.window.activeTextEditor;
@@ -45599,45 +45600,27 @@ exports.getComponents = getComponents;
 /* 175 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-let { Input } = __webpack_require__(176)
-
-let SafeParser = __webpack_require__(217)
-
-module.exports = function safeParse(css, opts) {
-  let input = new Input(css, opts)
-
-  let parser = new SafeParser(input)
-  parser.parse()
-
-  return parser.root
-}
-
-
-/***/ }),
-/* 176 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
 "use strict";
 
 
-let AtRule = __webpack_require__(177)
-let Comment = __webpack_require__(179)
-let Container = __webpack_require__(178)
-let CssSyntaxError = __webpack_require__(181)
-let Declaration = __webpack_require__(187)
-let Document = __webpack_require__(188)
-let fromJSON = __webpack_require__(189)
-let Input = __webpack_require__(190)
-let LazyResult = __webpack_require__(208)
-let list = __webpack_require__(207)
-let Node = __webpack_require__(180)
-let parse = __webpack_require__(210)
-let Processor = __webpack_require__(215)
-let Result = __webpack_require__(212)
-let Root = __webpack_require__(205)
-let Rule = __webpack_require__(206)
-let stringify = __webpack_require__(185)
-let Warning = __webpack_require__(213)
+let AtRule = __webpack_require__(176)
+let Comment = __webpack_require__(178)
+let Container = __webpack_require__(177)
+let CssSyntaxError = __webpack_require__(180)
+let Declaration = __webpack_require__(186)
+let Document = __webpack_require__(187)
+let fromJSON = __webpack_require__(188)
+let Input = __webpack_require__(189)
+let LazyResult = __webpack_require__(207)
+let list = __webpack_require__(206)
+let Node = __webpack_require__(179)
+let parse = __webpack_require__(209)
+let Processor = __webpack_require__(214)
+let Result = __webpack_require__(211)
+let Root = __webpack_require__(204)
+let Rule = __webpack_require__(205)
+let stringify = __webpack_require__(184)
+let Warning = __webpack_require__(212)
 
 function postcss(...plugins) {
   if (plugins.length === 1 && Array.isArray(plugins[0])) {
@@ -45722,13 +45705,13 @@ postcss.default = postcss
 
 
 /***/ }),
-/* 177 */
+/* 176 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
+let Container = __webpack_require__(177)
 
 class AtRule extends Container {
   constructor(defaults) {
@@ -45754,16 +45737,16 @@ Container.registerAtRule(AtRule)
 
 
 /***/ }),
-/* 178 */
+/* 177 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Comment = __webpack_require__(179)
-let Declaration = __webpack_require__(187)
-let Node = __webpack_require__(180)
-let { isClean, my } = __webpack_require__(186)
+let Comment = __webpack_require__(178)
+let Declaration = __webpack_require__(186)
+let Node = __webpack_require__(179)
+let { isClean, my } = __webpack_require__(185)
 
 let AtRule, parse, Root, Rule
 
@@ -46208,13 +46191,13 @@ Container.rebuild = node => {
 
 
 /***/ }),
-/* 179 */
+/* 178 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Node = __webpack_require__(180)
+let Node = __webpack_require__(179)
 
 class Comment extends Node {
   constructor(defaults) {
@@ -46228,16 +46211,16 @@ Comment.default = Comment
 
 
 /***/ }),
-/* 180 */
+/* 179 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let CssSyntaxError = __webpack_require__(181)
-let Stringifier = __webpack_require__(184)
-let stringify = __webpack_require__(185)
-let { isClean, my } = __webpack_require__(186)
+let CssSyntaxError = __webpack_require__(180)
+let Stringifier = __webpack_require__(183)
+let stringify = __webpack_require__(184)
+let { isClean, my } = __webpack_require__(185)
 
 function cloneNode(obj, parent) {
   let cloned = new obj.constructor()
@@ -46624,7 +46607,7 @@ Node.default = Node
 
 
 /***/ }),
-/* 181 */
+/* 180 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -46632,7 +46615,7 @@ Node.default = Node
 
 let pico = __webpack_require__(154)
 
-let terminalHighlight = __webpack_require__(182)
+let terminalHighlight = __webpack_require__(181)
 
 class CssSyntaxError extends Error {
   constructor(message, line, column, source, file, plugin) {
@@ -46764,7 +46747,7 @@ CssSyntaxError.default = CssSyntaxError
 
 
 /***/ }),
-/* 182 */
+/* 181 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -46772,7 +46755,7 @@ CssSyntaxError.default = CssSyntaxError
 
 let pico = __webpack_require__(154)
 
-let tokenizer = __webpack_require__(183)
+let tokenizer = __webpack_require__(182)
 
 let Input
 
@@ -46841,7 +46824,7 @@ module.exports = terminalHighlight
 
 
 /***/ }),
-/* 183 */
+/* 182 */
 /***/ ((module) => {
 
 "use strict";
@@ -47114,7 +47097,7 @@ module.exports = function tokenizer(input, options = {}) {
 
 
 /***/ }),
-/* 184 */
+/* 183 */
 /***/ ((module) => {
 
 "use strict";
@@ -47474,13 +47457,13 @@ Stringifier.default = Stringifier
 
 
 /***/ }),
-/* 185 */
+/* 184 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Stringifier = __webpack_require__(184)
+let Stringifier = __webpack_require__(183)
 
 function stringify(node, builder) {
   let str = new Stringifier(builder)
@@ -47492,7 +47475,7 @@ stringify.default = stringify
 
 
 /***/ }),
-/* 186 */
+/* 185 */
 /***/ ((module) => {
 
 "use strict";
@@ -47504,13 +47487,13 @@ module.exports.my = Symbol('my')
 
 
 /***/ }),
-/* 187 */
+/* 186 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Node = __webpack_require__(180)
+let Node = __webpack_require__(179)
 
 class Declaration extends Node {
   constructor(defaults) {
@@ -47535,13 +47518,13 @@ Declaration.default = Declaration
 
 
 /***/ }),
-/* 188 */
+/* 187 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
+let Container = __webpack_require__(177)
 
 let LazyResult, Processor
 
@@ -47575,19 +47558,19 @@ Document.default = Document
 
 
 /***/ }),
-/* 189 */
+/* 188 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let AtRule = __webpack_require__(177)
-let Comment = __webpack_require__(179)
-let Declaration = __webpack_require__(187)
-let Input = __webpack_require__(190)
-let PreviousMap = __webpack_require__(204)
-let Root = __webpack_require__(205)
-let Rule = __webpack_require__(206)
+let AtRule = __webpack_require__(176)
+let Comment = __webpack_require__(178)
+let Declaration = __webpack_require__(186)
+let Input = __webpack_require__(189)
+let PreviousMap = __webpack_require__(203)
+let Root = __webpack_require__(204)
+let Rule = __webpack_require__(205)
 
 function fromJSON(json, inputs) {
   if (Array.isArray(json)) return json.map(n => fromJSON(n))
@@ -47636,20 +47619,20 @@ fromJSON.default = fromJSON
 
 
 /***/ }),
-/* 190 */
+/* 189 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let { nanoid } = __webpack_require__(191)
-let { isAbsolute, resolve } = __webpack_require__(7)
-let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(192)
-let { fileURLToPath, pathToFileURL } = __webpack_require__(203)
+let { nanoid } = __webpack_require__(190)
+let { isAbsolute, resolve } = __webpack_require__(8)
+let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(191)
+let { fileURLToPath, pathToFileURL } = __webpack_require__(202)
 
-let CssSyntaxError = __webpack_require__(181)
-let PreviousMap = __webpack_require__(204)
-let terminalHighlight = __webpack_require__(182)
+let CssSyntaxError = __webpack_require__(180)
+let PreviousMap = __webpack_require__(203)
+let terminalHighlight = __webpack_require__(181)
 
 let fromOffsetCache = Symbol('fromOffsetCache')
 
@@ -47891,7 +47874,7 @@ if (terminalHighlight && terminalHighlight.registerInput) {
 
 
 /***/ }),
-/* 191 */
+/* 190 */
 /***/ ((module) => {
 
 let urlAlphabet =
@@ -47918,7 +47901,7 @@ module.exports = { nanoid, customAlphabet }
 
 
 /***/ }),
-/* 192 */
+/* 191 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*
@@ -47926,13 +47909,13 @@ module.exports = { nanoid, customAlphabet }
  * Licensed under the New BSD license. See LICENSE.txt or:
  * http://opensource.org/licenses/BSD-3-Clause
  */
-exports.SourceMapGenerator = __webpack_require__(193).SourceMapGenerator;
-exports.SourceMapConsumer = __webpack_require__(199).SourceMapConsumer;
-exports.SourceNode = __webpack_require__(202).SourceNode;
+exports.SourceMapGenerator = __webpack_require__(192).SourceMapGenerator;
+exports.SourceMapConsumer = __webpack_require__(198).SourceMapConsumer;
+exports.SourceNode = __webpack_require__(201).SourceNode;
 
 
 /***/ }),
-/* 193 */
+/* 192 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -47942,10 +47925,10 @@ exports.SourceNode = __webpack_require__(202).SourceNode;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-var base64VLQ = __webpack_require__(194);
-var util = __webpack_require__(196);
-var ArraySet = (__webpack_require__(197).ArraySet);
-var MappingList = (__webpack_require__(198).MappingList);
+var base64VLQ = __webpack_require__(193);
+var util = __webpack_require__(195);
+var ArraySet = (__webpack_require__(196).ArraySet);
+var MappingList = (__webpack_require__(197).MappingList);
 
 /**
  * An instance of the SourceMapGenerator represents a source map which is
@@ -48382,7 +48365,7 @@ exports.SourceMapGenerator = SourceMapGenerator;
 
 
 /***/ }),
-/* 194 */
+/* 193 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -48422,7 +48405,7 @@ exports.SourceMapGenerator = SourceMapGenerator;
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var base64 = __webpack_require__(195);
+var base64 = __webpack_require__(194);
 
 // A single base 64 digit can contain 6 bits of data. For the base 64 variable
 // length quantities we use in the source map spec, the first bit is the sign,
@@ -48528,7 +48511,7 @@ exports.decode = function base64VLQ_decode(aStr, aIndex, aOutParam) {
 
 
 /***/ }),
-/* 195 */
+/* 194 */
 /***/ ((__unused_webpack_module, exports) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -48601,7 +48584,7 @@ exports.decode = function (charCode) {
 
 
 /***/ }),
-/* 196 */
+/* 195 */
 /***/ ((__unused_webpack_module, exports) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -49201,7 +49184,7 @@ exports.computeSourceURL = computeSourceURL;
 
 
 /***/ }),
-/* 197 */
+/* 196 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -49211,7 +49194,7 @@ exports.computeSourceURL = computeSourceURL;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-var util = __webpack_require__(196);
+var util = __webpack_require__(195);
 var has = Object.prototype.hasOwnProperty;
 var hasNativeMap = typeof Map !== "undefined";
 
@@ -49328,7 +49311,7 @@ exports.ArraySet = ArraySet;
 
 
 /***/ }),
-/* 198 */
+/* 197 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -49338,7 +49321,7 @@ exports.ArraySet = ArraySet;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-var util = __webpack_require__(196);
+var util = __webpack_require__(195);
 
 /**
  * Determine whether mappingB is after mappingA with respect to generated
@@ -49413,7 +49396,7 @@ exports.MappingList = MappingList;
 
 
 /***/ }),
-/* 199 */
+/* 198 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -49423,11 +49406,11 @@ exports.MappingList = MappingList;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-var util = __webpack_require__(196);
-var binarySearch = __webpack_require__(200);
-var ArraySet = (__webpack_require__(197).ArraySet);
-var base64VLQ = __webpack_require__(194);
-var quickSort = (__webpack_require__(201).quickSort);
+var util = __webpack_require__(195);
+var binarySearch = __webpack_require__(199);
+var ArraySet = (__webpack_require__(196).ArraySet);
+var base64VLQ = __webpack_require__(193);
+var quickSort = (__webpack_require__(200).quickSort);
 
 function SourceMapConsumer(aSourceMap, aSourceMapURL) {
   var sourceMap = aSourceMap;
@@ -50607,7 +50590,7 @@ exports.IndexedSourceMapConsumer = IndexedSourceMapConsumer;
 
 
 /***/ }),
-/* 200 */
+/* 199 */
 /***/ ((__unused_webpack_module, exports) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -50724,7 +50707,7 @@ exports.search = function search(aNeedle, aHaystack, aCompare, aBias) {
 
 
 /***/ }),
-/* 201 */
+/* 200 */
 /***/ ((__unused_webpack_module, exports) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -50862,7 +50845,7 @@ exports.quickSort = function (ary, comparator, start = 0) {
 
 
 /***/ }),
-/* 202 */
+/* 201 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /* -*- Mode: js; js-indent-level: 2; -*- */
@@ -50872,8 +50855,8 @@ exports.quickSort = function (ary, comparator, start = 0) {
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-var SourceMapGenerator = (__webpack_require__(193).SourceMapGenerator);
-var util = __webpack_require__(196);
+var SourceMapGenerator = (__webpack_require__(192).SourceMapGenerator);
+var util = __webpack_require__(195);
 
 // Matches a Windows-style `\r\n` newline or a `\n` newline used by all other
 // operating systems these days (capturing the result).
@@ -51281,22 +51264,22 @@ exports.SourceNode = SourceNode;
 
 
 /***/ }),
-/* 203 */
+/* 202 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");
 
 /***/ }),
-/* 204 */
+/* 203 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let { existsSync, readFileSync } = __webpack_require__(6)
-let { dirname, join } = __webpack_require__(7)
-let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(192)
+let { existsSync, readFileSync } = __webpack_require__(7)
+let { dirname, join } = __webpack_require__(8)
+let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(191)
 
 function fromBase64(str) {
   if (Buffer) {
@@ -51439,13 +51422,13 @@ PreviousMap.default = PreviousMap
 
 
 /***/ }),
-/* 205 */
+/* 204 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
+let Container = __webpack_require__(177)
 
 let LazyResult, Processor
 
@@ -51507,14 +51490,14 @@ Container.registerRoot(Root)
 
 
 /***/ }),
-/* 206 */
+/* 205 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
-let list = __webpack_require__(207)
+let Container = __webpack_require__(177)
+let list = __webpack_require__(206)
 
 class Rule extends Container {
   constructor(defaults) {
@@ -51541,7 +51524,7 @@ Container.registerRule(Rule)
 
 
 /***/ }),
-/* 207 */
+/* 206 */
 /***/ ((module) => {
 
 "use strict";
@@ -51606,21 +51589,21 @@ list.default = list
 
 
 /***/ }),
-/* 208 */
+/* 207 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
-let Document = __webpack_require__(188)
-let MapGenerator = __webpack_require__(209)
-let parse = __webpack_require__(210)
-let Result = __webpack_require__(212)
-let Root = __webpack_require__(205)
-let stringify = __webpack_require__(185)
-let { isClean, my } = __webpack_require__(186)
-let warnOnce = __webpack_require__(214)
+let Container = __webpack_require__(177)
+let Document = __webpack_require__(187)
+let MapGenerator = __webpack_require__(208)
+let parse = __webpack_require__(209)
+let Result = __webpack_require__(211)
+let Root = __webpack_require__(204)
+let stringify = __webpack_require__(184)
+let { isClean, my } = __webpack_require__(185)
+let warnOnce = __webpack_require__(213)
 
 const TYPE_TO_CLASS_NAME = {
   atrule: 'AtRule',
@@ -52163,17 +52146,17 @@ Document.registerLazyResult(LazyResult)
 
 
 /***/ }),
-/* 209 */
+/* 208 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let { dirname, relative, resolve, sep } = __webpack_require__(7)
-let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(192)
-let { pathToFileURL } = __webpack_require__(203)
+let { dirname, relative, resolve, sep } = __webpack_require__(8)
+let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(191)
+let { pathToFileURL } = __webpack_require__(202)
 
-let Input = __webpack_require__(190)
+let Input = __webpack_require__(189)
 
 let sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator)
 let pathAvailable = Boolean(dirname && resolve && relative && sep)
@@ -52538,15 +52521,15 @@ module.exports = MapGenerator
 
 
 /***/ }),
-/* 210 */
+/* 209 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(178)
-let Input = __webpack_require__(190)
-let Parser = __webpack_require__(211)
+let Container = __webpack_require__(177)
+let Input = __webpack_require__(189)
+let Parser = __webpack_require__(210)
 
 function parse(css, opts) {
   let input = new Input(css, opts)
@@ -52587,18 +52570,18 @@ Container.registerParse(parse)
 
 
 /***/ }),
-/* 211 */
+/* 210 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let AtRule = __webpack_require__(177)
-let Comment = __webpack_require__(179)
-let Declaration = __webpack_require__(187)
-let Root = __webpack_require__(205)
-let Rule = __webpack_require__(206)
-let tokenizer = __webpack_require__(183)
+let AtRule = __webpack_require__(176)
+let Comment = __webpack_require__(178)
+let Declaration = __webpack_require__(186)
+let Root = __webpack_require__(204)
+let Rule = __webpack_require__(205)
+let tokenizer = __webpack_require__(182)
 
 const SAFE_COMMENT_NEIGHBOR = {
   empty: true,
@@ -53203,13 +53186,13 @@ module.exports = Parser
 
 
 /***/ }),
-/* 212 */
+/* 211 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Warning = __webpack_require__(213)
+let Warning = __webpack_require__(212)
 
 class Result {
   constructor(processor, root, opts) {
@@ -53252,7 +53235,7 @@ Result.default = Result
 
 
 /***/ }),
-/* 213 */
+/* 212 */
 /***/ ((module) => {
 
 "use strict";
@@ -53296,7 +53279,7 @@ Warning.default = Warning
 
 
 /***/ }),
-/* 214 */
+/* 213 */
 /***/ ((module) => {
 
 "use strict";
@@ -53316,16 +53299,16 @@ module.exports = function warnOnce(message) {
 
 
 /***/ }),
-/* 215 */
+/* 214 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Document = __webpack_require__(188)
-let LazyResult = __webpack_require__(208)
-let NoWorkResult = __webpack_require__(216)
-let Root = __webpack_require__(205)
+let Document = __webpack_require__(187)
+let LazyResult = __webpack_require__(207)
+let NoWorkResult = __webpack_require__(215)
+let Root = __webpack_require__(204)
 
 class Processor {
   constructor(plugins = []) {
@@ -53390,17 +53373,17 @@ Document.registerProcessor(Processor)
 
 
 /***/ }),
-/* 216 */
+/* 215 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let MapGenerator = __webpack_require__(209)
-let parse = __webpack_require__(210)
-const Result = __webpack_require__(212)
-let stringify = __webpack_require__(185)
-let warnOnce = __webpack_require__(214)
+let MapGenerator = __webpack_require__(208)
+let parse = __webpack_require__(209)
+const Result = __webpack_require__(211)
+let stringify = __webpack_require__(184)
+let warnOnce = __webpack_require__(213)
 
 class NoWorkResult {
   constructor(processor, css, opts) {
@@ -53535,12 +53518,30 @@ NoWorkResult.default = NoWorkResult
 
 
 /***/ }),
+/* 216 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+let { Input } = __webpack_require__(175)
+
+let SafeParser = __webpack_require__(217)
+
+module.exports = function safeParse(css, opts) {
+  let input = new Input(css, opts)
+
+  let parser = new SafeParser(input)
+  parser.parse()
+
+  return parser.root
+}
+
+
+/***/ }),
 /* 217 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-let Comment = __webpack_require__(179)
-let Parser = __webpack_require__(211)
-let tokenizer = __webpack_require__(183)
+let Comment = __webpack_require__(178)
+let Parser = __webpack_require__(210)
+let tokenizer = __webpack_require__(182)
 
 class SafeParser extends Parser {
   checkMissedSemicolon() {}

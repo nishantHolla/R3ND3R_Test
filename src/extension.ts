@@ -115,6 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
         "/src",
         "/r3nd3rExtension/src"
       );
+      console.log(`The file path of the component is: {r3nd3rComponentFilePath}`);
 
       console.log("Word under cursor: ", getWordUnderCursor());
       // vscode.window.showInformationMessage(
