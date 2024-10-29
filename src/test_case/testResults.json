@@ -1,0 +1,139 @@
+[
+  {
+    "numFailedTestSuites": 0,
+    "numFailedTests": 0,
+    "numPassedTestSuites": 1,
+    "numPassedTests": 5,
+    "numPendingTestSuites": 0,
+    "numPendingTests": 0,
+    "numRuntimeErrorTestSuites": 0,
+    "numTodoTests": 0,
+    "numTotalTestSuites": 1,
+    "numTotalTests": 5,
+    "openHandles": [],
+    "snapshot": {
+      "added": 0,
+      "didUpdate": false,
+      "failure": false,
+      "filesAdded": 0,
+      "filesRemoved": 0,
+      "filesRemovedList": [],
+      "filesUnmatched": 0,
+      "filesUpdated": 0,
+      "matched": 0,
+      "total": 0,
+      "unchecked": 0,
+      "uncheckedKeysByFile": [],
+      "unmatched": 0,
+      "updated": 0
+    },
+    "startTime": 1730004219466,
+    "success": false,
+    "testResults": [
+      {
+        "leaks": false,
+        "numFailingTests": 0,
+        "numPassingTests": 5,
+        "numPendingTests": 0,
+        "numTodoTests": 0,
+        "openHandles": [],
+        "perfStats": {
+          "end": 1730004220386,
+          "runtime": 544,
+          "slow": false,
+          "start": 1730004219842
+        },
+        "skipped": false,
+        "snapshot": {
+          "added": 0,
+          "fileDeleted": false,
+          "matched": 0,
+          "unchecked": 0,
+          "uncheckedKeys": [],
+          "unmatched": 0,
+          "updated": 0
+        },
+        "testFilePath": "/Users/pranavhemanth/Code/Hackathons & Workshops/r3nd3r/src/test_case/Button.test.jsx",
+        "testResults": [
+          {
+            "ancestorTitles": [
+              "Button"
+            ],
+            "duration": 20,
+            "failureDetails": [],
+            "failureMessages": [],
+            "fullName": "Button renders with text prop",
+            "invocations": 1,
+            "location": null,
+            "numPassingAsserts": 1,
+            "retryReasons": [],
+            "status": "passed",
+            "title": "renders with text prop"
+          },
+          {
+            "ancestorTitles": [
+              "Button"
+            ],
+            "duration": 5,
+            "failureDetails": [],
+            "failureMessages": [],
+            "fullName": "Button handles click events",
+            "invocations": 1,
+            "location": null,
+            "numPassingAsserts": 1,
+            "retryReasons": [],
+            "status": "passed",
+            "title": "handles click events"
+          },
+          {
+            "ancestorTitles": [
+              "Button"
+            ],
+            "duration": 3,
+            "failureDetails": [],
+            "failureMessages": [],
+            "fullName": "Button applies custom className",
+            "invocations": 1,
+            "location": null,
+            "numPassingAsserts": 1,
+            "retryReasons": [],
+            "status": "passed",
+            "title": "applies custom className"
+          },
+          {
+            "ancestorTitles": [
+              "Button"
+            ],
+            "duration": 6,
+            "failureDetails": [],
+            "failureMessages": [],
+            "fullName": "Button renders with different text props",
+            "invocations": 1,
+            "location": null,
+            "numPassingAsserts": 2,
+            "retryReasons": [],
+            "status": "passed",
+            "title": "renders with different text props"
+          },
+          {
+            "ancestorTitles": [
+              "Button"
+            ],
+            "duration": 27,
+            "failureDetails": [],
+            "failureMessages": [],
+            "fullName": "Button maintains accessibility features",
+            "invocations": 1,
+            "location": null,
+            "numPassingAsserts": 1,
+            "retryReasons": [],
+            "status": "passed",
+            "title": "maintains accessibility features"
+          }
+        ],
+        "failureMessage": null
+      }
+    ],
+    "wasInterrupted": false
+  }
+]
